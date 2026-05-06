@@ -1,0 +1,92 @@
+<?php
+session_start();
+date_default_timezone_set('America/La_Paz');
+
+if (isset($_SESSION['cedula_empleado']) && !empty($_SESSION['cedula_empleado']) && $_SESSION['status'] === TRUE) {
+  if ($_SESSION['perfil'] > 0)
+  {
+// $fecha_actual = date('Y-m-d');
+//     echo $_SESSION['cedula_empleado'];
+//     echo "<br>";
+//     echo 1;
+//         echo "<br>";
+//     echo "$fecha_actual";
+//         echo "<br>";
+//     echo $_POST['tipo_beneficio'];
+//         echo "<br>";
+//     echo is_string($_POST['tipo_beneficio']);
+//     if (is_string($_POST['tipo_beneficio'])==false) {
+//       echo "f";
+//     }else {
+//       echo "t";
+//     }
+
+    if (!empty($_POST['fecha_desde']) && $_POST['fecha_desde'] != '' && !empty($_POST['fecha_hasta']) && $_POST['fecha_hasta'] != '')
+    {
+      $fecha_solicitado = $_POST['fecha_desde'];
+      $fecha_solicitado_hasta = $_POST['fecha_hasta'];
+      $id = $_POST['id'];
+      if ($_SESSION['perfil'] == 2) {
+        $cedula_id = $_POST['cedula'];
+      } else {
+        $cedula_id = $_SESSION['cedula_empleado'];
+      }
+      $cod_hijo = $_POST['cod_hijo'];
+      $status =  $_POST['status'];
+      $estado_solicitud =  $_POST['estado'];
+      $tipo_beneficio =  $_POST['tipo'];
+      $rango = $_POST['rango'];
+
+      include('../model/mod_conexion.php');
+      $conexionPGSQL = new ConexionPGSQL();
+      $pgconn = $conexionPGSQL->conectar();
+
+      include('../model/mod_beneficiario.php');
+      $solicitud = new Beneficiario();
+      $consultar = $solicitud->filtrar_solicitudes_beneficio ($fecha_solicitado,$fecha_solicitado_hasta,$id,$cedula_id,$cod_hijo,$status,$estado_solicitud,$tipo_beneficio,$rango,$pgconn);
+
+      if(!empty($consultar) && $consultar != '' && $consultar != false)
+      {
+        $json = json_encode($consultar);
+
+           echo "<form name='datos'>";
+           echo "<input type='hidden' name='rango' value='$rango'>";
+           echo "<input type='hidden' name='consulta' value='$json'>";
+           echo "</form>";
+           echo "<script type='text/javascript'>
+                   document.datos.method = 'POST';
+                   document.datos.action = '../view/view_consulta_solicitudes_beneficios_resultado.php';
+                   document.datos.submit();
+                 </script>";
+
+      }else{
+        ?>
+            <script type="text/javascript">
+              alert('No han sido encontrada solicitudes con los parametros enviados');
+              window.location="../view/view_consulta_beneficios.php";
+              // window.history.back();
+            </script>
+        <?php
+      }
+    }else {
+    ?>
+        <script type="text/javascript">
+          alert('Recuerde seleccionar un rango de fecha para proceder');
+          window.location="../view/view_consulta_beneficios.php";
+          // window.history.back();
+        </script>
+    <?php
+   }
+  }else {
+    ?>
+        <script type="text/javascript">
+          alert('USted no posee un perfil valido');
+          window.location="../view/view_menu.php";
+        </script>
+    <?php
+  }
+}else {
+  header('location: ../index.php');
+  session_destroy();
+}
+?>
