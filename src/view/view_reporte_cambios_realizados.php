@@ -1,0 +1,160 @@
+<?php
+session_start();
+if (isset($_SESSION['cedula_empleado']) && !empty($_SESSION['cedula_empleado']) && $_SESSION['status'] === TRUE) {
+  if ($_SESSION['perfil'] == 4 || $_SESSION['perfil'] == 3) {
+?>
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <?php include_once 'inc/head.php'; ?>
+    <style type="text/css">
+    /* Datagrid */
+    	body {
+    font: normal medium/1.4 sans-serif;
+    background: rgba(188,232,245,1);
+    background: -moz-linear-gradient(top, rgba(188,232,245,1) 0%, rgba(247,213,172,1) 100%);
+    background: -webkit-gradient(left top, left bottom, color-stop(0%, rgba(188,232,245,1)), color-stop(100%, rgba(247,213,172,1)));
+    background: -webkit-linear-gradient(top, rgba(188,232,245,1) 0%, rgba(247,213,172,1) 100%);
+    background: -o-linear-gradient(top, rgba(188,232,245,1) 0%, rgba(247,213,172,1) 100%);
+    background: -ms-linear-gradient(top, rgba(188,232,245,1) 0%, rgba(247,213,172,1) 100%);
+    background: linear-gradient(to bottom, rgba(188,232,245,1) 0%, rgba(247,213,172,1) 100%);
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#bce8f5', endColorstr='#f7d5ac', GradientType=0 );}
+    table {
+      border-collapse: collapse;
+      width: 100%;
+    }
+    th, td {
+      padding: 0.25rem;
+      border: 1px solid #ccc;
+    }
+    tbody tr:nth-child(odd) {
+      background: #eee;
+    }
+    .centro{
+      padding: 0.5rem;
+      background: #484848 ;
+      color: white;
+      text-align: center;
+      font-size: 21px;
+
+    }
+
+    #cuadro{
+    	width: 90%;
+    	background: #F8F8F8 ;
+    	padding: 25px;
+    	margin: 5px auto;
+    	border: 3px solid #D8D8D8;
+    }
+    #titulo{
+    	width: 100%;
+    	background: #282828;
+    	color:white;
+
+    }
+    </style>
+    <script type="text/javascript">
+    function click(){
+      if(event.button==2){
+        alert('Opcion no Permitida');
+      }
+    }
+    document.onmousedown=click;
+    function inhabilitar(){
+        alert ("Opcion no Permitida");
+        return false;
+    }
+    document.oncontextmenu=inhabilitar;
+    document.onkeypress = inhabilitar;
+    document.onkeydown=inhabilitar;
+    </script>
+  </head>
+  <body>
+    <header id="header">
+      <?php include_once 'inc/header.php'; ?>
+    </header>
+    <section>
+      <table>
+        <thead>
+          <tr class="centro">
+            <td>Id</td>
+            <td>Cedula empleado</td>
+            <td>Cod. Usuario</td>
+            <td>Operacion Realizada</td>
+            <td>Tabla</td>
+            <td>Columna</td>
+            <td>Valor Original</td>
+            <td>Valor Nuevo</td>
+            <td>URL</td>
+            <td>Fecha de Modificacion</td>
+          </tr>
+        </thead>
+        <?php
+        $rango = '';
+        $rango = $_GET['rango'];
+          include('../model/mod_conexion.php');
+          $conexionPGSQL = new ConexionPGSQL();
+          $pgconn = $conexionPGSQL->conectar();
+
+          include('../model/mod_bitacora.php');
+          $empleado = new Bitacora();
+          $consultar = $empleado->consultar_bitacora ($rango,$pgconn);
+
+          // $columna = pg_fetch_array($consultar);
+        while($columna = pg_fetch_array($consultar)) {
+        ?>
+            <tr>
+              <td><?php echo $columna['id'];?>
+              </td>
+              <td>
+                <?php echo $columna['cedula_empleado'];?>
+              </td>
+              <td>
+                <?php echo $columna['cod_usuario'];?>
+              </td>
+              <td>
+                <?php echo $columna['cod_operacion'] ;?>
+              </td>
+              <td>
+                <?php echo $columna['tabla'];?>
+              </td>
+              <td>
+                <?php echo $columna['columna'];?>
+              </td>
+              <td>
+                <?php
+                echo $columna['valor_original'];?>
+              </td>
+              <td>
+                <?php
+                echo $columna['valor_nuevo'];?>
+              </td>
+              <td>
+                <?php echo $columna['url'];?>
+              </td>
+              <td>
+                <?php
+                $fecha = date_create($columna['fecha']);
+                echo date_format($fecha,'Y-m-d');
+                ?>
+              </td>
+            </tr>
+          <?php } ?>
+        </tbody>
+      </table>
+    </section>
+  </body>
+</html>
+<script type="text/javascript">
+  window.print();
+</script>
+<?php
+
+  }else {
+    header('location: view_menu.php');
+  }
+}else {
+  header('location: ../index.php');
+  session_destroy();
+}
+?>

@@ -1,0 +1,125 @@
+@import url('https://fonts.googleapis.com/css?family=Signika');
+
+.form {
+  background:;
+  padding: 40px;
+  max-width: 600px;
+  margin: 40px auto;
+  border-radius: 4px;
+  box-shadow: 0 4px 10px 4px #f56f3a;
+}
+
+h2 {
+  text-align: center;
+  color: #f56f3a;
+  font-weight: 300;
+  margin: 0 0 40px;
+}
+
+label {
+  position: absolute;
+  -webkit-transform: translateY(6px);
+          transform: translateY(6px);
+  left: 13px;
+  color: black;
+  -webkit-transition: all 0.25s ease;
+  transition: all 0.25s ease;
+  -webkit-backface-visibility: hidden;
+  pointer-events: none;
+  font-size: 14px;
+}
+
+select, textarea{
+    font-family: 'Signika', sans-serif;
+}
+
+}
+label .req {
+  margin: 2px;
+  color: #f56f3a ;
+}
+
+label.active {
+  -webkit-transform: translateY(-20px);
+          transform: translateY(-20px);
+  left: 2px;
+  font-size: 14px;
+}
+label.active .req {
+  opacity: 0;
+}
+
+label.highlight {
+  color: black;
+}
+
+input, textarea, select {
+  font-size: 22px;
+  display: block;
+  width: 100%;
+  padding: 5px 10px;
+  background: none;
+  background-image: none;
+  border: 1px solid #a0b3b0;
+  color: black;
+  border-radius: 0;
+  -webkit-transition: border-color .25s ease, box-shadow .25s ease;
+  transition: border-color .25s ease, box-shadow .25s ease;
+}
+input:focus, textarea:focus, select:focus {
+  outline: 0;
+  box-shadow: 0 4px 10px 4px #f56f3a;
+}
+
+textarea {
+  border: 2px solid #a0b3b0;
+  resize: vertical;
+}
+
+.empleado {
+  position: relative;
+  margin-bottom: 40px;
+}
+
+.contenedor:after {
+  content: "";
+  display: table;
+  clear: both;
+}
+.contenedor > div {
+  float: left;
+  width: 48%;
+  margin-right: 4%;
+}
+.contenedor > div:last-child {
+  margin: 0;
+}
+
+.button {
+  border: 0;
+  outline: none;
+  border-radius: 0;
+  padding: 15px 0;
+  font-size: 2rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  background: #3366FF;
+  color: #ffffff;
+  -webkit-transition: all 0.5s ease;
+  transition: all 0.5s ease;
+  -webkit-appearance: none;
+}
+.button:hover, .button:focus {
+  background: #0099FF;
+}
+
+.button-block {
+  display: block;
+  width: 100%;
+}
+
+.forgot {
+  margin-top: -20px;
+  text-align: right;
+}

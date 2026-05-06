@@ -1,0 +1,46 @@
+ 
+.info {
+background: #fff6bf;
+justify-content: center;
+align-content: center;
+flex-direction: column;
+text-align: center;
+font-size: 15px;
+padding: 5px 20px 5px 45px;
+border:2px solid #ffd324;
+color:black;
+width: 300px;
+margin: auto auto; 
+}
+
+.validado {
+background: #54F912;
+justify-content: center;
+align-content: center;
+flex-direction: column;
+text-align: center;
+font-size: 15px;
+padding: 5px 20px 5px 45px;
+border:2px solid #2F890B;
+color:black;
+width: 300px;
+
+margin: auto auto;
+
+}
+
+.error {
+background: #FF5733;
+justify-content: center;
+align-content: center;
+flex-direction: column;
+font-weight: bold;
+text-align: center;
+font-size: 15px;
+padding: 5px 20px 5px 45px;
+border:2px solid #C61717;
+color: #FFFFFF;
+width: 300px;
+margin: auto auto; 
+word-wrap: break-word;
+}

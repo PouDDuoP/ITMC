@@ -1,0 +1,122 @@
+@import url(https://fonts.googleapis.com/css?family=Titillium+Web);
+
+*{
+    margin: 0;
+    padding: 0;
+    font-weight: 300;
+
+}
+
+body{
+    background: rgba(188,232,245,1);
+background: -moz-linear-gradient(top, rgba(188,232,245,1) 0%, rgba(247,213,172,1) 100%);
+background: -webkit-gradient(left top, left bottom, color-stop(0%, rgba(188,232,245,1)), color-stop(100%, rgba(247,213,172,1)));
+background: -webkit-linear-gradient(top, rgba(188,232,245,1) 0%, rgba(247,213,172,1) 100%);
+background: -o-linear-gradient(top, rgba(188,232,245,1) 0%, rgba(247,213,172,1) 100%);
+background: -ms-linear-gradient(top, rgba(188,232,245,1) 0%, rgba(247,213,172,1) 100%);
+background: linear-gradient(to bottom, rgba(188,232,245,1) 0%, rgba(247,213,172,1) 100%);
+filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#bce8f5', endColorstr='#f7d5ac', GradientType=0 );
+    font-family: 'Titillium Web', sans-serif;
+}
+
+header{
+    width: 100%;
+    background: #3399FF;
+    margin-bottom: 20px;
+    overflow: hidden;
+    position:;
+
+}
+
+header .menunav{
+    width: 90%;
+    max-width: 1000px;
+    margin: auto;
+    overflow: hidden;
+}
+
+header .logotipo{
+    margin-top: 5px;
+    float: left;
+}
+
+header nav{
+    float: right;
+    line-height: 100px;
+}
+
+header nav a{
+    display: inline-block;
+    color:#fff;
+    text-decoration: none;
+    padding: 10px 20px;
+    line-height: normal;
+    font-size: 15px;
+    font-weight: bold;
+    transition: all 500ms ease;
+}
+
+header nav a:hover{
+    background: #fe9a2e;
+    border-radius: 20px;
+    color: black;
+}
+
+header nav a span{
+    margin: 5px;
+}
+
+footer span{
+    margin: 5px;
+    color: grey;
+    
+}
+
+footer .icon-earth{
+    color:#a48e68;
+   
+}
+
+footer .icon-youtube2{
+    color: #fe7a7c;
+   
+}
+
+footer .icon-twitter{
+    color: #b7d9fb;
+   
+}
+
+footer .icon-facebook2{
+    color:#6b8bab;
+    
+}
+footer .icon-instagram{
+    color:#b2cae1;
+    
+}
+footer .icon-earth:hover{
+    color:#7B241C;
+    pointer:
+}
+
+footer .icon-youtube2:hover{
+    color: #c4302b;
+    pointer:
+}
+
+footer .icon-twitter:hover{
+    color: #4099FF;
+    pointer:
+}
+
+footer .icon-facebook2:hover{
+    color:#3b5998;
+    pointer:
+}
+footer .icon-instagram:hover{
+    color:#3f729b;
+    pointer:
+}
+
+
