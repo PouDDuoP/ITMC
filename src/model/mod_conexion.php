@@ -17,7 +17,7 @@ class ConexionPGSQL {
 			$this->port = getenv('DB_PORT') ? getenv('DB_PORT') : '5432';
 			$this->db= getenv('DB_NAME') ? getenv('DB_NAME') : 'dbitmc';
 			$this->user= getenv('DB_USER') ? getenv('DB_USER') : 'postgres';
-			$this->pass= getenv('DB_PASS') ? getenv('DB_PASS') : '12345';
+			$this->pass= getenv('DB_PASS') ? getenv('DB_PASS') : 'DB_PASS'; // poné tu contraseña en .env o DB_PASS
 			$this->conexion="host=".$this->host." port=".$this->port." password=".$this->pass." user=".$this->user." dbname=".$this->db."";
 
 		}

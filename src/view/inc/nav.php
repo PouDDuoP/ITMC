@@ -1,7 +1,8 @@
 <?php
-if (isset($_SESSION['cedula_empleado']) && !empty($_SESSION['cedula_empleado']) && $_SESSION['status'] === TRUE) {
-  if ($_SESSION['perfil'] > 0) {
-    //barra de navegacion del sistema
+require_once __DIR__ . '/../../inc/auth.php';
+require_auth();
+require_perfil();
+//barra de navegacion del sistema
 ?>
 <nav>
   <div id='cssmenu'>
@@ -98,17 +99,3 @@ if (isset($_SESSION['cedula_empleado']) && !empty($_SESSION['cedula_empleado']) 
       </div>
   </div>
 </nav>
-<?php
-  }else {
-    ?>
-      <script type="text/javascript">
-        alert('perfil '+<?php $_SESSION['perfil'] ?>+' no esta registrado');
-          window.location="../index.php";
-      </script>
-    <?php
-  }
-}else {
-  header('location: ../index.php');
-  session_destroy();
-}
-?>

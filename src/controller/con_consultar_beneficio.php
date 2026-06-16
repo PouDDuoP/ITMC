@@ -1,6 +1,8 @@
 <?php
-if (isset($_SESSION['cedula_empleado']) && !empty($_SESSION['cedula_empleado']) && $_SESSION['status'] === TRUE) {
-  if ($_SESSION['perfil'] == 4) {
+session_start();
+require_once '../inc/auth.php';
+require_auth();
+require_perfil(4);
 
     $status = TRUE;
 
@@ -39,17 +41,6 @@ if (isset($_SESSION['cedula_empleado']) && !empty($_SESSION['cedula_empleado']) 
             </script>
           <?php
           }
-  }else {
-    ?>
-        <script type="text/javascript">
-          alert('este modulo solo esta habilitado para usuario administrador');
-          window.location="../view/view_menu.php";
-        </script>
-    <?php
-  }
-}else {
-  header('location: ../index.php');
-  session_destroy();
-}
+  
 
 ?>

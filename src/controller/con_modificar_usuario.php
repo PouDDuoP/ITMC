@@ -6,13 +6,12 @@ if (file_exists('../config.php')) {
     include('../config.php');
 }
 
-$_SESSION['cedula_empleado'];
-
 date_default_timezone_set('America/La_Paz');
 $fecha_actual = date('Y-m-d');
 
-if (isset($_SESSION['cedula_empleado']) && !empty($_SESSION['cedula_empleado']) && $_SESSION['status'] === TRUE) {
-  if ($_SESSION['perfil'] == 4 || $_SESSION['perfil'] == 3) {
+require_once '../inc/auth.php';
+require_auth();
+require_perfil([4, 3]);
     if (!empty($_POST['perfil']) && !empty($_POST['id']) &&
         !empty($_POST['cedula']) && !empty($_POST['status'])) {
 
@@ -41,8 +40,8 @@ if (isset($_SESSION['cedula_empleado']) && !empty($_SESSION['cedula_empleado']) 
         $tabla = 'usuario';
         $columna = 'status';
 
-        $query_o = "SELECT status FROM itmc.usuario WHERE cedula_empleado = '$cedula_id' AND id = $id AND perfil = $perfil";
-        $operacion_bit = pg_query($pgconn,$query_o) or die("Consulta errónea: ".pg_last_error());
+        $query_o = "SELECT status FROM itmc.usuario WHERE cedula_empleado = $1 AND id = $2 AND perfil = $3";
+        $operacion_bit = pg_query_params($pgconn,$query_o,array($cedula_id, $id, $perfil)) or die("Consulta errÃ³nea: ".pg_last_error());
         $iterador = pg_fetch_array($operacion_bit);
 
         $valor_original = $iterador['status'];
@@ -75,16 +74,5 @@ if (isset($_SESSION['cedula_empleado']) && !empty($_SESSION['cedula_empleado']) 
     <?php
    }
 
-  }else {
-    ?>
-        <script type="text/javascript">
-          alert('este modulo solo esta habilitado para usuario administrador');
-          window.location="../view/view_menu.php";
-        </script>
-    <?php
-  }
-} else {
-  header('Location: index.php');
-  session_destroy();
-}
+  
 ?>

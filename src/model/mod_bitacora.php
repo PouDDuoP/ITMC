@@ -1,19 +1,4 @@
-
 <?php
-if (isset($_SESSION['cedula_empleado']) && !empty($_SESSION['cedula_empleado']) && $_SESSION['status'] === TRUE) {
-  if ($_SESSION['perfil'] >0) {
-
-    $url_pase = parse_url( $_SERVER['HTTP_REFERER'] );
-    if (!isset($url_pase[ "port" ])) {
-      $host = $url_pase[ "scheme" ] . "://" . $url_pase[ "host" ]; // parseamos para obtener el scheme "http:" y el Host "Locahost:8080 or 80 ..."
-    } else {
-      $host = $url_pase[ "scheme" ] . "://" . $url_pase[ "host" ] . ":" . $url_pase[ "port" ]; // parseamos para obtener el scheme "http:" y el Host "Locahost:8080 or 80 ..."
-    }
-    $path = $url_pase[ "path" ];
-    $url = $host.$path;
-
-    date_default_timezone_set('America/La_Paz');
-    $fecha = date('Y-m-d');
 
 class Bitacora
 {
@@ -49,23 +34,26 @@ class Bitacora
 
   function registrar_bitacora ($cedula_id,$usuario_id,$operacion,$tabla,$columna,$valor_original,$valor_nuevo,$url,$fecha,$pgconn)
   {
-    $querySQL = "SELECT itmc.sp_bitacora ('$cedula_id',$usuario_id,'$operacion','$tabla','$columna','$valor_original','$valor_nuevo','$url','$fecha')";
-		$operacion = pg_query($pgconn,$querySQL) or die ("Consulta errónea: ".pg_last_error());
+    $querySQL = "SELECT itmc.sp_bitacora($1, $2, $3, $4, $5, $6, $7, $8, $9)";
+		$operacion = pg_query_params($pgconn,$querySQL,array($cedula_id, $usuario_id, $operacion, $tabla, $columna, $valor_original, $valor_nuevo, $url, $fecha)) or die ("Consulta errónea: ".pg_last_error());
 		return $operacion;
   }
 
   function consultar_bitacora ($rango,$pgconn)
   {
     $limit = "";
+    $params = array();
+    $paramIndex = 1;
     if (!empty($rango)) {
-      $limit = "LIMIT $rango";
+      $limit = "LIMIT $" . $paramIndex++;
+      $params[] = (int)$rango;
     }elseif (is_string($limit)) {
       $limit = "";
     }else {
       $limit = "";
     }
     $querySQL = "SELECT * FROM itmc.bitacora ORDER BY id DESC $limit";
-    $operacion = pg_query($pgconn,$querySQL) or die ("Consulta errónea: ".pg_last_error());
+    $operacion = pg_query_params($pgconn,$querySQL,$params) or die ("Consulta errónea: ".pg_last_error());
     if($operacion)
 		{
 			// $columna = pg_fetch_array($operacion);
@@ -78,16 +66,6 @@ class Bitacora
 		}
   }
 
-}
-
-
-  }else {
-    header('location: ../view/view_menu.php');
-    session_destroy();
-  }
-}else {
-header('location: ../index.php');
-session_destroy();
 }
 
 

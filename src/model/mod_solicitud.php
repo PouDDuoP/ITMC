@@ -1,7 +1,6 @@
 <?php
 
-if (isset($_SESSION['cedula_empleado']) && !empty($_SESSION['cedula_empleado']) && $_SESSION['status'] === TRUE) {
-  if ($_SESSION['perfil'] >0) {
+
 class Solicitud
 {
   private $id;
@@ -32,9 +31,9 @@ class Solicitud
 
   function crear_solicitud ($fecha_solicitado,$cedula_id,$descripcion,$tipo_solicitud,$estado_solicitud,$departamento,$pgconn)
   {
-    $querySQL = "INSERT INTO itmc.solicitud(fecha_solicitud, cedula_solicitante, descripcion, tipo_solicitud,estado_solicitud, departamento)VALUES ('$fecha_solicitado', '$cedula_id', '$descripcion', $tipo_solicitud, $estado_solicitud, $departamento)";
+    $querySQL = "INSERT INTO itmc.solicitud(fecha_solicitud, cedula_solicitante, descripcion, tipo_solicitud,estado_solicitud, departamento)VALUES ($1, $2, $3, $4, $5, $6)";
         // echo "$querySQL";
-    $operacion = pg_query($pgconn,$querySQL) or die ("Consulta errónea: ".pg_last_error());
+    $operacion = pg_query_params($pgconn,$querySQL,array($fecha_solicitado, $cedula_id, $descripcion, $tipo_solicitud, $estado_solicitud, $departamento)) or die ("Consulta errónea: ".pg_last_error());
 
 		return $operacion;
   }
@@ -42,13 +41,15 @@ class Solicitud
   function consultar_solicitud ($rango,$pgconn)
   {
     $limit = "";
+    $lparams = array();
     if (!empty($rango)) {
-      $limit = "LIMIT $rango";
+      $limit = "LIMIT $1";
+      $lparams = array((int)$rango);
     }else {
       $limit = "";
     }
     $querySQL = "SELECT * FROM itmc.solicitud $limit";
-    $operacion = pg_query($pgconn,$querySQL) or die ("Consulta errónea: ".pg_last_error());
+    $operacion = pg_query_params($pgconn,$querySQL,$lparams) or die ("Consulta errónea: ".pg_last_error());
     if($operacion)
 		{
 			// $columna = pg_fetch_array($operacion);
@@ -63,9 +64,9 @@ class Solicitud
 
   function consultar_solicitud_fecha ($cedula_id,$fecha_solicitado,$tipo_solicitud,$pgconn)
   {
-    $querySQL = "SELECT count(*) FROM itmc.solicitud WHERE cedula_solicitante = '$cedula_id' AND TO_CHAR(fecha_solicitud, 'YYYY-MM') = '$fecha_solicitado' AND tipo_solicitud = $tipo_solicitud GROUP BY id";
-    $operacion = pg_query($pgconn,$querySQL) or die ("Consulta errónea: ".pg_last_error());
-    echo "$querySQL";
+    $querySQL = "SELECT count(*) FROM itmc.solicitud WHERE cedula_solicitante = $1 AND TO_CHAR(fecha_solicitud, 'YYYY-MM') = $2 AND tipo_solicitud = $3 GROUP BY id";
+    $operacion = pg_query_params($pgconn,$querySQL,array($cedula_id, $fecha_solicitado, $tipo_solicitud)) or die ("Consulta errónea: ".pg_last_error());
+    // echo "$querySQL";
     if($operacion)
     {
       // $columna = pg_fetch_array($operacion);
@@ -80,15 +81,19 @@ class Solicitud
 
   function actualizar_solicitud ($departamento,$estado_solicitud,$pgconn)
   {
-    $set_departamento = "";
+    $set_parts = array();
+    $uparams = array();
     if (!empty($departamento)) {
-      $set_departamento = "departamento='$departamento',";
-    }else {
-      $set_departamento = "";
+      $set_parts[] = "departamento=$" . (count($uparams) + 1);
+      $uparams[] = $departamento;
     }
-    $querySQL = "UPDATE itmc.solicitud SET $set_departamento estado_solicitud='$estado_solicitud' WHERE id = '$id'";
+    $set_parts[] = "estado_solicitud=$" . (count($uparams) + 1);
+    $uparams[] = $estado_solicitud;
+    $set_str = implode(", ", $set_parts);
+    $querySQL = "UPDATE itmc.solicitud SET $set_str WHERE id=$" . (count($uparams) + 1);
+    $uparams[] = $id;
     // echo "$querySQL";
-    $operacion = pg_query($pgconn,$querySQL) or die ("Consulta errónea: ".pg_last_error());
+    $operacion = pg_query_params($pgconn,$querySQL,$uparams) or die ("Consulta errónea: ".pg_last_error());
     if ($operacion) {
 			return "ok";
 		} else {
@@ -98,23 +103,47 @@ class Solicitud
 
   function filtrar_solicitudes ($fecha_solicitado,$fecha_solicitado_hasta,$id,$cedula_id,$estado_solicitud,$tipo_solicitud,$rango,$pgconn)
   {
-    $fecha = !empty($fecha_solicitado) && !empty($fecha_solicitado_hasta) ? "WHERE fecha_solicitud BETWEEN '$fecha_solicitado 00:00:00' AND '$fecha_solicitado_hasta 24:00:00'" : "";
-    $id_solicitud = !empty($id) ? "AND s.id = $id" : "";
-    $cedula = !empty($cedula_id) ? "AND s.cedula_solicitante = '$cedula_id'" : "";
-    $estado = !empty($estado_solicitud) ? "AND s.estado_solicitud = $estado_solicitud" : "";
-    $tipo = !empty($tipo_solicitud) ? "AND s.tipo_solicitud = $tipo_solicitud" : "";
+    $conditions = array();
+    $fparams = array();
+    $paramIndex = 1;
+
+    if (!empty($fecha_solicitado) && !empty($fecha_solicitado_hasta)) {
+      $conditions[] = "fecha_solicitud BETWEEN $" . $paramIndex++ . " AND $" . $paramIndex++;
+      $fparams[] = $fecha_solicitado . " 00:00:00";
+      $fparams[] = $fecha_solicitado_hasta . " 24:00:00";
+    }
+    if (!empty($id)) {
+      $conditions[] = "s.id = $" . $paramIndex++;
+      $fparams[] = $id;
+    }
+    if (!empty($cedula_id)) {
+      $conditions[] = "s.cedula_solicitante = $" . $paramIndex++;
+      $fparams[] = $cedula_id;
+    }
+    if (!empty($estado_solicitud)) {
+      $conditions[] = "s.estado_solicitud = $" . $paramIndex++;
+      $fparams[] = $estado_solicitud;
+    }
+    if (!empty($tipo_solicitud)) {
+      $conditions[] = "s.tipo_solicitud = $" . $paramIndex++;
+      $fparams[] = $tipo_solicitud;
+    }
+
+    $where = !empty($conditions) ? "WHERE " . implode(" AND ", $conditions) : "";
+
     $limit = "";
     if (!empty($rango) && $rango > 0) {
-      $limit = "LIMIT $rango";
+      $limit = "LIMIT $" . $paramIndex++;
+      $fparams[] = (int)$rango;
     }elseif ($rango == 'ALL') {
       $limit = "";
     }else {
       $limit = "LIMIT 0";
     }
 
-    $querySQL = "SELECT s.*,es.nombre AS estadon,ts.nombre AS tipon FROM itmc.solicitud AS s LEFT JOIN itmc.estado_solicitud AS es ON s.estado_solicitud = es.id LEFT JOIN itmc.tipo_solicitud AS ts ON s.tipo_solicitud = ts.id $fecha $id_solicitud $cedula $estado $tipo $limit";
+    $querySQL = "SELECT s.*,es.nombre AS estadon,ts.nombre AS tipon FROM itmc.solicitud AS s LEFT JOIN itmc.estado_solicitud AS es ON s.estado_solicitud = es.id LEFT JOIN itmc.tipo_solicitud AS ts ON s.tipo_solicitud = ts.id $where $limit";
     // echo $querySQL;
-    $operacion = pg_query($pgconn,$querySQL) or die ("Consulta errónea: ".pg_last_error());
+    $operacion = pg_query_params($pgconn,$querySQL,$fparams) or die ("Consulta errónea: ".pg_last_error());
 
     $arraydatos = array();
     $i = 0;
@@ -136,15 +165,5 @@ class Solicitud
   }
 
 }
-
-  }else {
-    header('location: ../view/view_menu.php');
-    session_destroy();
-  }
-}else {
-header('location: ../index.php');
-session_destroy();
-}
-
 
 ?>

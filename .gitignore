@@ -45,3 +45,6 @@ test_*.sh
 
 # Archivos de instalación (deberían ejecutarse y eliminarse)
 setup_database.*
+
+# Datos exportados con información sensible
+consulta.json

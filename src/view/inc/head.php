@@ -1,8 +1,9 @@
 <?php
-if (isset($_SESSION['cedula_empleado']) && !empty($_SESSION['cedula_empleado']) && $_SESSION['status'] === TRUE) {
-  if ($_SESSION['perfil'] > 0) {
-    //Head con todos los elementos de style y los script
-    date_default_timezone_set('America/La_Paz');
+require_once __DIR__ . '/../../inc/auth.php';
+require_auth();
+require_perfil();
+//Head con todos los elementos de style y los script
+date_default_timezone_set('America/La_Paz');
 ?>
 <head>
   <meta http-equiv="Content-type" content="text/html; charset=utf-8" />
@@ -81,17 +82,3 @@ if (isset($_SESSION['cedula_empleado']) && !empty($_SESSION['cedula_empleado']) 
     }
   </script>
 </head>
-<?php
-  }else {
-    ?>
-      <script type="text/javascript">
-        alert('perfil no esta registrado');
-          window.location="../index.php";
-      </script>
-    <?php
-  }
-} else {
-  header('Location: index.php');
-  session_destroy();
-}
-?>

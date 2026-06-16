@@ -1,7 +1,5 @@
 <?php
 
-if (isset($_SESSION['cedula_empleado']) && !empty($_SESSION['cedula_empleado']) && $_SESSION['status'] === TRUE) {
-  if ($_SESSION['perfil'] >0) {
 class Departamento
 {
   private $id;
@@ -22,9 +20,9 @@ class Departamento
 
   function crear_departamento ($nombre,$descripcion,$status,$pgconn)
   {
-    $querySQL = "INSERT INTO itmc.departamento(nombre, descripcion, status) VALUES ('$nombre','$descripcion',$status)";
+    $querySQL = "INSERT INTO itmc.departamento(nombre, descripcion, status) VALUES ($1, $2, $3)";
         // echo "$querySQL";
-    $operacion = pg_query($pgconn,$querySQL) or die ("Consulta errónea: ".pg_last_error());
+    $operacion = pg_query_params($pgconn,$querySQL,array($nombre, $descripcion, $status)) or die ("Consulta errónea: ".pg_last_error());
 
 		return $operacion;
   }
@@ -47,9 +45,9 @@ class Departamento
 
   function consultar_departamento_status ($status,$pgconn)
   {
-    $querySQL = "SELECT * FROM itmc.departamento WHERE status = '$status'";
+    $querySQL = "SELECT * FROM itmc.departamento WHERE status = $1";
     // echo "$querySQL";
-    $operacion = pg_query($pgconn,$querySQL) or die ("Consulta errónea: ".pg_last_error());
+    $operacion = pg_query_params($pgconn,$querySQL,array($status)) or die ("Consulta errónea: ".pg_last_error());
     if($operacion)
 		{
 			// $columna = pg_fetch_array($operacion);
@@ -62,13 +60,6 @@ class Departamento
 		}
   }
 }
-    }else {
-      header('location: ../view/view_menu.php');
-      session_destroy();
-    }
-  }else {
-  header('location: ../index.php');
-  session_destroy();
-  }
 
-  ?>
+
+?>

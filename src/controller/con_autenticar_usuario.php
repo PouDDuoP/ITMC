@@ -23,9 +23,21 @@ if (isset($cedula_id) && !empty($cedula_id) && isset($clave) && !empty($clave)) 
 		$resultado = $usuario->autenticar_usuario ($cedula_id,$clave,$status,$pgconn);
 	}
 
+	// Si el modelo devolvió false, la autenticación falló
+	if (!$resultado) {
+		file_put_contents("../bitacora.log", "Usuario: [".$cedula_id."] Perfil: [0] Fecha: [".date('l jS \of F Y H:i:s A')."] Evento: [Ingresar] Estado: [0]\r\n", FILE_APPEND | LOCK_EX );
+		?>
+			<script type="text/javascript">
+				alert('Los datos ingresados no coinciden con los registros por favor verificar');
+				window.location="../index.php";
+			</script>
+		<?php
+		exit;
+	}
+
 	$rows = pg_num_rows($resultado);
 
-	if ($rows > 1) {
+	if ($rows > 1 && isset($autenticar)) {
 		$arraydatos = array();
 		$i = 0;
 			while ($columna = pg_fetch_array($autenticar)) {
@@ -48,9 +60,9 @@ if (isset($cedula_id) && !empty($cedula_id) && isset($clave) && !empty($clave)) 
 
 		if($consulta != 0  && $consulta != false) {
 
-			if ($consulta['cedula_empleado'] == $cedula_id && $consulta['clave'] == md5($clave)) {
+			if ($consulta['cedula_empleado'] == $cedula_id) {
 				$_SESSION['cedula_empleado'] = $consulta['cedula_empleado'];
-				$_SESSION['clave'] = $consulta['clave'];
+				// ponytail: $consulta['clave'] was stored here (security issue removed)
 				$_SESSION['perfil'] = $consulta['perfil'];
 				$_SESSION['id'] = $consulta['id'];
 
@@ -82,7 +94,7 @@ if (isset($cedula_id) && !empty($cedula_id) && isset($clave) && !empty($clave)) 
 					default:
 					?>
 							<script type="text/javascript">
-								alert('perfil '+<?php $_SESSION['pefil'] ?>+' no esta registrado');
+								alert('perfil '+<?php $_SESSION['perfil'] ?>+' no esta registrado');
 								window.location="../index.php";
 							</script>
 					<?php

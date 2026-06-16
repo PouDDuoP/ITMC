@@ -1,15 +1,14 @@
 <?php
 session_start();
 
-// Incluir configuración si existe
+// Incluir configuraciÃ³n si existe
 if (file_exists('../config.php')) {
     include('../config.php');
 }
 
-$_SESSION['cedula_empleado'];
-
-if (isset($_SESSION['cedula_empleado']) && !empty($_SESSION['cedula_empleado']) && $_SESSION['status'] === TRUE) {
-  if ($_SESSION['perfil'] == 4 || $_SESSION['perfil'] == 3) {
+require_once '../inc/auth.php';
+require_auth();
+require_perfil([4, 3]);
     if (!empty($_POST['cedula']) || $_POST['cedula'] != 0 || is_string($_POST['cedula']) == false) {
 
       $cedula_id = $_POST['cedula'];
@@ -65,15 +64,5 @@ if (isset($_SESSION['cedula_empleado']) && !empty($_SESSION['cedula_empleado']) 
               </script>";
         exit;
     }
-  } else {
-      echo "<script type='text/javascript'>
-              alert('Este modulo solo esta habilitado para usuario administrador');
-              window.location='../view/view_menu.php';
-            </script>";
-      exit;
-  }
-} else {
-  header('Location: index.php');
-  session_destroy();
-}
+  
 ?>

@@ -65,7 +65,8 @@ CREATE TABLE IF NOT EXISTS itmc.usuario
 (
   id serial NOT NULL,
   cedula_empleado varchar(15) NOT NULL,
-  clave varchar (50) NOT NULL,
+  -- VARCHAR(255) para soportar bcrypt (password_hash genera 60 chars)
+  clave varchar (255) NOT NULL,
   perfil int NOT NULL,
   status boolean NOT NULL DEFAULT true,
   CONSTRAINT pkey_id_usuario PRIMARY KEY (id),
@@ -241,19 +242,21 @@ INSERT INTO itmc.perfil_usuario(nombre, descripcion, status)
 
 
 INSERT INTO itmc.empleado(id, nombre, apellido, email, cargo, fecha_ingreso, ext_telefono,nro_telefono, departamento, sueldo, status)
-  SELECT '1','Yenn', 'Yann', 'Yenn@gmail.com', 1,'2017-03-01', '0424', '9829234',1, 30000000, TRUE
+  SELECT '1','Yenn', 'Yann', 'Yenn@gmail.com', 1,'2017-03-01', '0424', '000000',1, 30000000, TRUE
   WHERE NOT EXISTS (SELECT 1 FROM itmc.empleado WHERE id = '1');
 INSERT INTO itmc.empleado(id, nombre, apellido, email, cargo, fecha_ingreso, ext_telefono,nro_telefono, departamento, sueldo, status)
-  SELECT '2','Barr', 'Berr', 'Barr@gmail.com', 3,'2014-02-15', '0424', '8011634',3, 30000000, TRUE
+  SELECT '2','Barr', 'Berr', 'Barr@gmail.com', 3,'2014-02-15', '0424', '0000000',3, 30000000, TRUE
   WHERE NOT EXISTS (SELECT 1 FROM itmc.empleado WHERE id = '2');
 INSERT INTO itmc.empleado(id, nombre, apellido, email, cargo, fecha_ingreso, ext_telefono,nro_telefono, departamento, sueldo, status)
-  SELECT '3','Kenn', 'Kann', 'Kenn@gmail.com', 1,'2015-01-27', '0414', '9000034',1, 30000000, TRUE
+  SELECT '3','Kenn', 'Kann', 'Kenn@gmail.com', 1,'2015-01-27', '0414', '0000000',1, 30000000, TRUE
   WHERE NOT EXISTS (SELECT 1 FROM itmc.empleado WHERE id = '3');
 INSERT INTO itmc.empleado(id, nombre, apellido, email, cargo, fecha_ingreso, ext_telefono,nro_telefono, departamento, sueldo, status)
-  SELECT '4','Gerr', 'Garr', 'Gerr@gmail.com', 2,'2017-03-19', '0412', '1009234',2, 30000000, TRUE
+  SELECT '4','Gerr', 'Garr', 'Gerr@gmail.com', 2,'2017-03-19', '0412', '0000000',2, 30000000, TRUE
   WHERE NOT EXISTS (SELECT 1 FROM itmc.empleado WHERE id = '4');
 
 
+-- Los hashes MD5 del seed (c4ca4238a0b923820dcc509a6f75849b = MD5('1'))
+-- se migran automáticamente a bcrypt en el primer login exitoso.
 INSERT INTO itmc.usuario(cedula_empleado, clave, perfil, status)
   SELECT '1', 'c4ca4238a0b923820dcc509a6f75849b', 4, TRUE
   WHERE NOT EXISTS (SELECT 1 FROM itmc.usuario WHERE cedula_empleado = '1' AND perfil = 4);

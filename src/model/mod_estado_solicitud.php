@@ -1,7 +1,6 @@
 <?php
 
-if (isset($_SESSION['cedula_empleado']) && !empty($_SESSION['cedula_empleado']) && $_SESSION['status'] === TRUE) {
-  if ($_SESSION['perfil'] >0) {
+
 class EstadoSolicitud
 {
   private $id;
@@ -22,18 +21,18 @@ class EstadoSolicitud
 
   function crear_estado_solicitud ($nombre,$descripcion,$status,$pgconn)
   {
-    $querySQL = "INSERT INTO itmc.estado_solicitud(nombre, descripcion, status) VALUES ('$nombre','$descripcion',$status)";
+    $querySQL = "INSERT INTO itmc.estado_solicitud(nombre, descripcion, status) VALUES ($1, $2, $3)";
         // echo "$querySQL";
-    $operacion = pg_query($pgconn,$querySQL) or die ("Consulta errónea: ".pg_last_error());
+    $operacion = pg_query_params($pgconn,$querySQL,array($nombre, $descripcion, $status)) or die ("Consulta errónea: ".pg_last_error());
 
 		return $operacion;
   }
 
   function consultar_estado_solicitud ($status,$pgconn)
   {
-    $querySQL = "SELECT * FROM itmc.estado_solicitud WHERE status = '$status'";
+    $querySQL = "SELECT * FROM itmc.estado_solicitud WHERE status = $1";
     // echo "$querySQL";
-    $operacion = pg_query($pgconn,$querySQL) or die ("Consulta errónea: ".pg_last_error());
+    $operacion = pg_query_params($pgconn,$querySQL,array($status)) or die ("Consulta errónea: ".pg_last_error());
     if($operacion)
 		{
 			// $columna = pg_fetch_array($operacion);
@@ -45,16 +44,6 @@ class EstadoSolicitud
 			return false;
 		}
   }
-}
-
-
-  }else {
-    header('location: ../view/view_menu.php');
-    session_destroy();
-  }
-}else {
-header('location: ../index.php');
-session_destroy();
 }
 
 

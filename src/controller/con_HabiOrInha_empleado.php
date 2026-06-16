@@ -6,13 +6,12 @@ if (file_exists('../config.php')) {
     include('../config.php');
 }
 
-$_SESSION['cedula_empleado'];
-
 date_default_timezone_set('America/La_Paz');
 $fecha_actual = date('Y-m-d');
 
-if (isset($_SESSION['cedula_empleado']) && !empty($_SESSION['cedula_empleado']) && $_SESSION['status'] === TRUE) {
-  if ($_SESSION['perfil'] == 4 || $_SESSION['perfil'] == 2) {
+require_once '../inc/auth.php';
+require_auth();
+require_perfil([4, 2]);
     if (!empty($_POST['cedula']) && !empty($_POST['status'])) {
 
     $cedula = $_POST['cedula'];
@@ -24,8 +23,8 @@ if (isset($_SESSION['cedula_empleado']) && !empty($_SESSION['cedula_empleado']) 
     $conexionPGSQL = new ConexionPGSQL();
     $pgconn = $conexionPGSQL->conectar();
 
-    $query_o_id = "SELECT status FROM itmc.empleado WHERE id = '$cedula'";
-    $operacion_bit_id = pg_query($pgconn,$query_o_id) or die("Consulta errónea: ".pg_last_error());
+    $query_o_id = "SELECT status FROM itmc.empleado WHERE id = $1";
+    $operacion_bit_id = pg_query_params($pgconn,$query_o_id,array($cedula)) or die("Consulta errÃ³nea: ".pg_last_error());
     $iterador_id = pg_fetch_array($operacion_bit_id);
 
     include('../model/mod_empleado.php');
@@ -59,8 +58,8 @@ if (isset($_SESSION['cedula_empleado']) && !empty($_SESSION['cedula_empleado']) 
     			$tabla = 'usuario';
     			$columna = 'status';
 
-    			$query_o = "SELECT status FROM itmc.usuario WHERE cedula_empleado = '$cedula' AND status = '$status' AND perfil = $perfil";
-    			$operacion_bit = pg_query($pgconn,$query_o) or die("Consulta errónea: ".pg_last_error());
+    		$query_o = "SELECT status FROM itmc.usuario WHERE cedula_empleado = $1 AND status = $2 AND perfil = $3";
+    			$operacion_bit = pg_query_params($pgconn,$query_o,array($cedula, $status, $perfil)) or die("Consulta errÃ³nea: ".pg_last_error());
     			$iterador = pg_fetch_array($operacion_bit);
 
     			$valor_original = $iterador['status'];
@@ -74,8 +73,8 @@ if (isset($_SESSION['cedula_empleado']) && !empty($_SESSION['cedula_empleado']) 
     			$tabla = 'usuario';
     			$columna = 'status';
 
-    			$query_o = "SELECT status FROM itmc.usuario WHERE cedula_empleado = '$cedula' AND status = '$status'";
-    			$operacion_bit = pg_query($pgconn,$query_o) or die("Consulta errónea: ".pg_last_error());
+    		$query_o = "SELECT status FROM itmc.usuario WHERE cedula_empleado = $1 AND status = $2";
+    			$operacion_bit = pg_query_params($pgconn,$query_o,array($cedula, $status)) or die("Consulta errÃ³nea: ".pg_last_error());
     			$iterador = pg_fetch_array($operacion_bit);
 
     			while ($iterador = pg_fetch_array($operacion_bit)) {
@@ -121,16 +120,5 @@ if (isset($_SESSION['cedula_empleado']) && !empty($_SESSION['cedula_empleado']) 
     <?php
    }
 
-  }else {
-    ?>
-        <script type="text/javascript">
-          alert('este modolo solo esta habilitado para usuario administrador');
-          window.location="../view/view_menu.php";
-        </script>
-    <?php
-  }
-} else {
-  header('Location: index.php');
-  session_destroy();
-}
+  
 ?>

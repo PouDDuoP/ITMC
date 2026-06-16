@@ -1,7 +1,5 @@
 <?php
 
-if (isset($_SESSION['cedula_empleado']) && !empty($_SESSION['cedula_empleado']) && $_SESSION['status'] === TRUE) {
-  if ($_SESSION['perfil'] >0) {
 class Empleado
 {
   private $cedula_id;
@@ -42,23 +40,25 @@ class Empleado
 
   function registrar_empleado ($cedula_id,$nombre,$apellido,$email,$cargo,$fecha_ingreso,$ext_telf,$nro_telf,$departamento,$sueldo,$pgconn)
   {
-    $querySQL = "INSERT INTO itmc.empleado(id, nombre, apellido, email, cargo, fecha_ingreso, ext_telefono,nro_telefono, departamento, sueldo) VALUES('$cedula_id','$nombre','$apellido','$email',$cargo,'$fecha_ingreso','$ext_telf','$nro_telf',$departamento,$sueldo)";
-		$operacion = pg_query($pgconn,$querySQL) or die ("Consulta errónea: ".pg_last_error());
+    $querySQL = "INSERT INTO itmc.empleado(id, nombre, apellido, email, cargo, fecha_ingreso, ext_telefono,nro_telefono, departamento, sueldo) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)";
+		$operacion = pg_query_params($pgconn,$querySQL,array($cedula_id, $nombre, $apellido, $email, $cargo, $fecha_ingreso, $ext_telf, $nro_telf, $departamento, $sueldo)) or die ("Consulta errónea: ".pg_last_error());
 		return $operacion;
   }
 
   function consultar_empleados ($rango,$pgconn)
   {
     $limit = "";
+    $lparams = array();
     if (!empty($rango) && $rango > 0) {
-      $limit = "LIMIT $rango";
+      $limit = "LIMIT $1";
+      $lparams = array((int)$rango);
     }elseif ($rango == 'ALL') {
       $limit = "";
     }else {
       $limit = "LIMIT 0";
     }
     $querySQL = "SELECT e.*,d.nombre AS departamenton, c.nombre AS cargon FROM itmc.empleado AS e LEFT JOIN itmc.departamento AS d ON e.departamento = d.id LEFT JOIN itmc.cargo AS c ON e.cargo = c.id $limit";
-    $operacion = pg_query($pgconn,$querySQL) or die ("Consulta errónea: ".pg_last_error());
+    $operacion = pg_query_params($pgconn,$querySQL,$lparams) or die ("Consulta errónea: ".pg_last_error());
     if($operacion)
 		{
 			// $columna = pg_fetch_array($operacion);
@@ -73,9 +73,9 @@ class Empleado
 
   function consultar_empleado ($cedula_id,$pgconn)
   {
-    $querySQL = "SELECT e.*,d.nombre AS departamenton,c.nombre AS cargon FROM itmc.empleado AS e LEFT JOIN itmc.departamento AS d ON e.departamento = d.id LEFT JOIN itmc.cargo AS c ON e.cargo = c.id WHERE e.id = '$cedula_id'";
+    $querySQL = "SELECT e.*,d.nombre AS departamenton,c.nombre AS cargon FROM itmc.empleado AS e LEFT JOIN itmc.departamento AS d ON e.departamento = d.id LEFT JOIN itmc.cargo AS c ON e.cargo = c.id WHERE e.id = $1";
     // echo $querySQL;
-    $operacion = pg_query($pgconn,$querySQL) or die ("Consulta errónea: ".pg_last_error());
+    $operacion = pg_query_params($pgconn,$querySQL,array($cedula_id)) or die ("Consulta errónea: ".pg_last_error());
     if(!empty($operacion))
     {
       // $columna = pg_fetch_array($operacion);
@@ -90,9 +90,9 @@ class Empleado
 
   function consultar_empleado_cedula ($cedula_id,$pgconn)
   {
-    $querySQL = "SELECT id,status FROM itmc.empleado WHERE id = '$cedula_id'";
+    $querySQL = "SELECT id,status FROM itmc.empleado WHERE id = $1";
     // echo $querySQL;
-    $operacion = pg_query($pgconn,$querySQL) or die ("Consulta errónea: ".pg_last_error());
+    $operacion = pg_query_params($pgconn,$querySQL,array($cedula_id)) or die ("Consulta errónea: ".pg_last_error());
     if(!empty($operacion))
     {
       $columna = pg_fetch_array($operacion);
@@ -107,9 +107,9 @@ class Empleado
 
   function actualizar_empleado ($cedula_id,$nombre,$apellido,$email,$cargo,$ext_telf,$nro_telf,$departamento,$sueldo,$pgconn)
   {
-    $querySQL = "UPDATE itmc.empleado SET nombre='$nombre', apellido='$apellido', email='$email', cargo=$cargo, ext_telefono='$ext_telf', nro_telefono='$nro_telf', departamento=$departamento, sueldo=$sueldo WHERE id = '$cedula_id'";
+    $querySQL = "UPDATE itmc.empleado SET nombre=$1, apellido=$2, email=$3, cargo=$4, ext_telefono=$5, nro_telefono=$6, departamento=$7, sueldo=$8 WHERE id = $9";
     // echo "$querySQL";
-    $operacion = pg_query($pgconn,$querySQL) or die ("Consulta errónea: ".pg_last_error());
+    $operacion = pg_query_params($pgconn,$querySQL,array($nombre, $apellido, $email, $cargo, $ext_telf, $nro_telf, $departamento, $sueldo, $cedula_id)) or die ("Consulta errónea: ".pg_last_error());
     if ($operacion) {
 			return "ok";
 		}else {
@@ -119,9 +119,9 @@ class Empleado
 
   function HabiOrInha_empleado ($cedula_id,$status,$pgconn)
   {
-    $querySQL = "UPDATE itmc.empleado SET status='$status' WHERE id = '$cedula_id'";
+    $querySQL = "UPDATE itmc.empleado SET status=$1 WHERE id = $2";
     // echo "$querySQL";
-    $operacion = pg_query($pgconn,$querySQL) or die ("Consulta errónea: ".pg_last_error());
+    $operacion = pg_query_params($pgconn,$querySQL,array($status, $cedula_id)) or die ("Consulta errónea: ".pg_last_error());
     if ($operacion) {
 			return "ok";
 		}else {
@@ -131,8 +131,8 @@ class Empleado
 
   function despedir_empleado ($cedula_id,$pgconn)
   {
-    $querySQL = "UPDATE itmc.empleado SET status = false WHERE id = '$cedula_id'";
-    $operacion = pg_query($pgconn,$querySQL) or die ("Consulta errónea: ".pg_last_error());
+    $querySQL = "UPDATE itmc.empleado SET status = false WHERE id = $1";
+    $operacion = pg_query_params($pgconn,$querySQL,array($cedula_id)) or die ("Consulta errónea: ".pg_last_error());
     if ($operacion) {
 			return "ok";
 		}else {
@@ -142,8 +142,8 @@ class Empleado
 
   function recontratar_empleado ($fecha_ingreso,$cedula_id)
   {
-    $querySQL = "UPDATE itmc.empleado SET status = true, fecha_ingreso = '$fecha_ingreso' WHERE id = '$cedula_id'";
-    $operacion = pg_query($pgconn,$querySQL) or die ("Consulta errónea: ".pg_last_error());
+    $querySQL = "UPDATE itmc.empleado SET status = true, fecha_ingreso = $1 WHERE id = $2";
+    $operacion = pg_query_params($pgconn,$querySQL,array($fecha_ingreso, $cedula_id)) or die ("Consulta errónea: ".pg_last_error());
     if ($operacion) {
 			return "ok";
 		}else {
@@ -153,31 +153,48 @@ class Empleado
 
   function filtrar_empleados ($cedula_id,$fecha_ingreso,$fecha_hasta,$departamento,$sueldo,$sueldo_hasta,$status,$rango,$pgconn)
   {
-    $where = "";
-    if   (!empty($cedula_id) || !empty($fecha_ingreso) || !empty($fecha_hasta) || !empty($departamento) || !empty($sueldo) || !empty($sueldo_hasta) || !empty($status)) {
-      $where = "WHERE ";
-    }else {
-      $where = "";
+    $conditions = array();
+    $fparams = array();
+    $paramIndex = 1;
+
+    if (!empty($cedula_id)) {
+      $conditions[] = "e.id = $" . $paramIndex++;
+      $fparams[] = $cedula_id;
+    }
+    if (!empty($fecha_ingreso) && !empty($fecha_hasta)) {
+      $conditions[] = "e.fecha_ingreso BETWEEN $" . $paramIndex++ . " AND $" . $paramIndex++;
+      $fparams[] = $fecha_ingreso . " 00:00:00";
+      $fparams[] = $fecha_hasta . " 24:00:00";
+    }
+    if (!empty($departamento)) {
+      $conditions[] = "e.departamento = $" . $paramIndex++;
+      $fparams[] = $departamento;
+    }
+    if (!empty($sueldo) && !empty($sueldo_hasta)) {
+      $conditions[] = "e.sueldo BETWEEN $" . $paramIndex++ . " AND $" . $paramIndex++;
+      $fparams[] = $sueldo;
+      $fparams[] = $sueldo_hasta;
+    }
+    if (!empty($status)) {
+      $conditions[] = "e.status = $" . $paramIndex++;
+      $fparams[] = $status;
     }
 
-    $cedula = !empty($cedula_id) ? "AND e.id = '$cedula_id' " : "";
-    $fecha = !empty($fecha_ingreso) && !empty($fecha_hasta) ? "AND e.fecha_ingreso BETWEEN '$fecha_ingreso 00:00:00' AND '$fecha_hasta 24:00:00' " : "";
-    $departa = !empty($departamento) ? "AND e.departamento = $departamento " : "";
-    $suel = !empty($sueldo) && !empty($sueldo_hasta) ? "AND e.sueldo BETWEEN $sueldo AND $sueldo_hasta " : "";
-    $stat = !empty($status) ? "e.status = '$status'" : "";
+    $where = !empty($conditions) ? "WHERE " . implode(" AND ", $conditions) : "";
 
     $limit = "";
     if (!empty($rango) && $rango > 0) {
-      $limit = "LIMIT $rango";
+      $limit = "LIMIT $" . $paramIndex++;
+      $fparams[] = (int)$rango;
     }elseif ($rango == 'ALL') {
       $limit = "";
     }else {
       $limit = "LIMIT 0";
     }
 
-    $querySQL = "SELECT e.*,d.nombre AS departamenton, c.nombre AS cargon FROM itmc.empleado AS e LEFT JOIN itmc.departamento AS d ON e.departamento = d.id LEFT JOIN itmc.cargo AS c ON e.cargo = c.id $where $stat $cedula $fecha $departa $suel $limit";
+    $querySQL = "SELECT e.*,d.nombre AS departamenton, c.nombre AS cargon FROM itmc.empleado AS e LEFT JOIN itmc.departamento AS d ON e.departamento = d.id LEFT JOIN itmc.cargo AS c ON e.cargo = c.id $where $limit";
     // echo $querySQL;
-    $operacion = pg_query($pgconn,$querySQL) or die ("Consulta errónea: ".pg_last_error());
+    $operacion = pg_query_params($pgconn,$querySQL,$fparams) or die ("Consulta errónea: ".pg_last_error());
     if($operacion)
 		{
 			// $columna = pg_fetch_array($operacion);
@@ -224,16 +241,6 @@ class Empleado
     }
   }
 
-}
-
-
-  }else {
-    header('location: ../view/view_menu.php');
-    session_destroy();
-  }
-}else {
-header('location: ../index.php');
-session_destroy();
 }
 
 

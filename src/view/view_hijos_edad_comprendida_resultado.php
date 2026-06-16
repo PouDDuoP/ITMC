@@ -1,7 +1,8 @@
 <?php
 session_start();
-if (isset($_SESSION['cedula_empleado']) && !empty($_SESSION['cedula_empleado']) && $_SESSION['status'] === TRUE) {
-  if ($_SESSION['perfil'] == 4 || $_SESSION['perfil'] == 3) {
+require_once '../inc/auth.php';
+require_auth();
+require_perfil([4, 3]);
     if($_POST){
        //echo "recibo algo POST";
 
@@ -119,11 +120,4 @@ tbody tr:nth-child(odd) {
           </script>
       <?php
     }
-  }else {
-    header('location: view_menu.php');
-  }
-}else {
-  header('location: ../index.php');
-  session_destroy();
-}
-?>
+

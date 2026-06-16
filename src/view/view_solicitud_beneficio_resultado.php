@@ -1,7 +1,8 @@
 <?php
 session_start();
-if (isset($_SESSION['cedula_empleado']) && !empty($_SESSION['cedula_empleado']) && $_SESSION['status'] === TRUE) {
-  if ($_SESSION['perfil'] > 0) {
+require_once '../inc/auth.php';
+require_auth();
+require_perfil();
     if($_POST){
        //echo "recibo algo POST";
       //  header('refresh 1: view_solicitud_beneficio_resultado.php');
@@ -166,11 +167,4 @@ tbody tr:nth-child(odd) {
           </script>
       <?php
     }
-  }else {
-    header('location: view_menu.php');
-  }
-}else {
-  header('location: ../index.php');
-  session_destroy();
-}
-?>
+

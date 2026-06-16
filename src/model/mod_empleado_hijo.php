@@ -1,7 +1,5 @@
 <?php
 
-if (isset($_SESSION['cedula_empleado']) && !empty($_SESSION['cedula_empleado']) && $_SESSION['status'] === TRUE) {
-  if ($_SESSION['perfil'] >0) {
 class Hijo
 {
   private $id;
@@ -28,16 +26,16 @@ class Hijo
 
   function registrar_hijo ($cedula_id,$nombre,$apellido,$fecha_nacimiento,$nivel_academico,$pgconn)
   {
-    $querySQL = "INSERT INTO itmc.hijo(cedula_hijo, nombre, apellido, fecha_nacimiento, nivel_academico) VALUES('$cedula_id','$nombre','$apellido','$fecha_nacimiento','$nivel_academico')";
-		$operacion = pg_query($pgconn,$querySQL) or die ("Consulta errónea: ".pg_last_error());
+    $querySQL = "INSERT INTO itmc.hijo(cedula_hijo, nombre, apellido, fecha_nacimiento, nivel_academico) VALUES($1, $2, $3, $4, $5)";
+		$operacion = pg_query_params($pgconn,$querySQL,array($cedula_id, $nombre, $apellido, $fecha_nacimiento, $nivel_academico)) or die ("Consulta errónea: ".pg_last_error());
 		return $operacion;
   }
 
   function registrar_empleado_hijo ($cedula_id_padre,$cedula_id,$nombre,$apellido,$fecha_nacimiento,$nivel_academico,$pgconn)
   {
-    $querySQL = "INSERT INTO itmc.hijo_empleado(cedula_empleado, hijo) VALUES('$cedula_id_padre',(SELECT id FROM itmc.hijo WHERE cedula_hijo = '$cedula_id' AND nombre = '$nombre' AND apellido = '$apellido' AND fecha_nacimiento = '$fecha_nacimiento' AND nivel_academico = '$nivel_academico' ORDER BY id DESC LIMIT 1))";
+    $querySQL = "INSERT INTO itmc.hijo_empleado(cedula_empleado, hijo) VALUES($1,(SELECT id FROM itmc.hijo WHERE cedula_hijo = $2 AND nombre = $3 AND apellido = $4 AND fecha_nacimiento = $5 AND nivel_academico = $6 ORDER BY id DESC LIMIT 1))";
     // echo $querySQL;
-    $operacion = pg_query($pgconn,$querySQL) or die ("Consulta errónea: ".pg_last_error());
+    $operacion = pg_query_params($pgconn,$querySQL,array($cedula_id_padre, $cedula_id, $nombre, $apellido, $fecha_nacimiento, $nivel_academico)) or die ("Consulta errónea: ".pg_last_error());
 		return $operacion;
   }
 
@@ -59,8 +57,8 @@ class Hijo
 
   function consultar_empleado_hijo ($cedula_id_padre,$pgconn)
   {
-    $querySQL = "SELECT he.*,h.* FROM itmc.hijo_empleado AS he INNER JOIN itmc.hijo AS h ON he.hijo = h.id WHERE cedula_empleado = '$cedula_id_padre'";
-    $operacion = pg_query($pgconn,$querySQL) or die ("Consulta errónea: ".pg_last_error());
+    $querySQL = "SELECT he.*,h.* FROM itmc.hijo_empleado AS he INNER JOIN itmc.hijo AS h ON he.hijo = h.id WHERE cedula_empleado = $1";
+    $operacion = pg_query_params($pgconn,$querySQL,array($cedula_id_padre)) or die ("Consulta errónea: ".pg_last_error());
     if(!empty($operacion))
     {
       // $columna = pg_fetch_array($operacion);
@@ -91,9 +89,9 @@ class Hijo
 
   function actualizar_empleado_hijo ($id,$cedula_id,$nombre,$apellido,$fecha_nacimiento,$nivel_academico,$pgconn)
   {
-    $querySQL = "UPDATE itmc.hijo SET cedula_hijo='$cedula_id', nombre='$nombre', apellido='$apellido' , nivel_academico='$nivel_academico' WHERE id = '$id'";
+    $querySQL = "UPDATE itmc.hijo SET cedula_hijo=$1, nombre=$2, apellido=$3, nivel_academico=$4 WHERE id = $5";
     // echo "$querySQL";
-    $operacion = pg_query($pgconn,$querySQL) or die ("Consulta errónea: ".pg_last_error());
+    $operacion = pg_query_params($pgconn,$querySQL,array($cedula_id, $nombre, $apellido, $nivel_academico, $id)) or die ("Consulta errónea: ".pg_last_error());
     if ($operacion) {
 			return "ok";
 		}else {
@@ -104,8 +102,8 @@ class Hijo
 
     function consultar_empleado_hijo_cantidad ($cedula_id,$pgconn)
     {
-      $querySQL = "SELECT count(*) FROM itmc.hijo_empleado WHERE cedula_empleado = '$cedula_id' GROUP BY id";
-      $operacion = pg_query($pgconn,$querySQL) or die ("Consulta errónea: ".pg_last_error());
+      $querySQL = "SELECT count(*) FROM itmc.hijo_empleado WHERE cedula_empleado = $1 GROUP BY id";
+      $operacion = pg_query_params($pgconn,$querySQL,array($cedula_id)) or die ("Consulta errónea: ".pg_last_error());
       // echo "$querySQL";
       if($operacion)
       {
@@ -120,8 +118,8 @@ class Hijo
     }
     function estadistica_hijo_fecha ($fecha_nacimiento,$fecha_nacimiento_hasta,$pgconn)
     {
-      $querySQL = "SELECT count(*) FROM itmc.hijo_empleado AS he INNER JOIN itmc.hijo AS h ON h.id = he.hijo WHERE h.fecha_nacimiento BETWEEN '$fecha_nacimiento 00:00:00' AND '$fecha_nacimiento_hasta 24:00:00' GROUP BY h.id";
-      $operacion = pg_query($pgconn,$querySQL) or die ("Consulta errónea: ".pg_last_error());
+      $querySQL = "SELECT count(*) FROM itmc.hijo_empleado AS he INNER JOIN itmc.hijo AS h ON h.id = he.hijo WHERE h.fecha_nacimiento BETWEEN $1 AND $2 GROUP BY h.id";
+      $operacion = pg_query_params($pgconn,$querySQL,array($fecha_nacimiento . " 00:00:00", $fecha_nacimiento_hasta . " 24:00:00")) or die ("Consulta errónea: ".pg_last_error());
       // echo "$querySQL";
       if($operacion)
       {
@@ -152,16 +150,6 @@ class Hijo
       }
     }
 
-}
-
-
-  }else {
-    header('location: ../view/view_menu.php');
-    session_destroy();
-  }
-}else {
-header('location: ../index.php');
-session_destroy();
 }
 
 

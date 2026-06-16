@@ -1,7 +1,6 @@
 <?php
 
-if (isset($_SESSION['cedula_empleado']) && !empty($_SESSION['cedula_empleado']) && $_SESSION['status'] === TRUE) {
-  if ($_SESSION['perfil'] >0) {
+
 class Perfil
 {
   private $id;
@@ -22,18 +21,18 @@ class Perfil
 
   function crear_perfil ($nombre,$descripcion,$status,$pgconn)
   {
-    $querySQL = "INSERT INTO itmc.perfil_usuario(nombre, descripcion, status) VALUES ('$nombre','$descripcion',$status)";
+    $querySQL = "INSERT INTO itmc.perfil_usuario(nombre, descripcion, status) VALUES ($1, $2, $3)";
         // echo "$querySQL";
-    $operacion = pg_query($pgconn,$querySQL) or die ("Consulta errónea: ".pg_last_error());
+    $operacion = pg_query_params($pgconn,$querySQL,array($nombre, $descripcion, $status)) or die ("Consulta errónea: ".pg_last_error());
 
 		return $operacion;
   }
 
   function consultar_perfil ($id,$status,$pgconn)
   {
-    $querySQL = "SELECT * FROM itmc.perfil_usuario WHERE id = $id AND status = '$status'";
+    $querySQL = "SELECT * FROM itmc.perfil_usuario WHERE id = $1 AND status = $2";
     // echo "$querySQL";
-    $operacion = pg_query($pgconn,$querySQL) or die ("Consulta errónea: ".pg_last_error());
+    $operacion = pg_query_params($pgconn,$querySQL,array($id, $status)) or die ("Consulta errónea: ".pg_last_error());
     if($operacion)
 		{
 			// $columna = pg_fetch_array($operacion);
@@ -48,9 +47,9 @@ class Perfil
 
   function consultar_perfil_status ($status,$pgconn)
   {
-    $querySQL = "SELECT * FROM itmc.perfil_usuario WHERE status = '$status'";
+    $querySQL = "SELECT * FROM itmc.perfil_usuario WHERE status = $1";
     // echo "$querySQL";
-    $operacion = pg_query($pgconn,$querySQL) or die ("Consulta errónea: ".pg_last_error());
+    $operacion = pg_query_params($pgconn,$querySQL,array($status)) or die ("Consulta errónea: ".pg_last_error());
     if($operacion)
 		{
 			// $columna = pg_fetch_array($operacion);
@@ -64,15 +63,5 @@ class Perfil
   }
 }
 
-
-
-  }else {
-    header('location: ../view/view_menu.php');
-    session_destroy();
-  }
-}else {
-header('location: ../index.php');
-session_destroy();
-}
 
 ?>

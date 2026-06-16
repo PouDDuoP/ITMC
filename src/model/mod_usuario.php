@@ -21,8 +21,8 @@ class Usuario {
 	}
 	// validacion de campos de clase
 	function contar_perfiles ($cedula_id,$pgconn){
-		$querySQL = "SELECT u.cedula_empleado,u.perfil,p.nombre FROM itmc.usuario AS u INNER JOIN itmc.perfil_usuario AS p ON u.perfil = p.id WHERE u.cedula_empleado = '$cedula_id'";
-	 	$operacion = pg_query($pgconn,$querySQL) or die("Consulta errónea: ".pg_last_error());
+		$querySQL = "SELECT u.cedula_empleado,u.perfil,p.nombre FROM itmc.usuario AS u INNER JOIN itmc.perfil_usuario AS p ON u.perfil = p.id WHERE u.cedula_empleado = $1";
+	 	$operacion = pg_query_params($pgconn,$querySQL,array($cedula_id)) or die("Consulta errónea: ".pg_last_error());
 		if($operacion)
 		{
 			// $columna = pg_fetch_array($operacion);
@@ -36,46 +36,80 @@ class Usuario {
 	}
 	function autenticar_usuario ($cedula_id,$clave,$status,$pgconn)
 	{
-		$clave = md5($clave);
-		$querySQL = "SELECT * FROM itmc.usuario WHERE cedula_empleado = '$cedula_id' AND clave ='$clave' AND status = '$status' ";
-	 	$operacion = pg_query($pgconn,$querySQL) or die("Consulta errónea: ".pg_last_error());
-		if($operacion)
-		{
-			// $columna = pg_fetch_array($operacion);
-			// return $columna;
-			return $operacion;
+		// Buscar usuario por cédula + status (sin incluir clave en el WHERE)
+		$querySQL = "SELECT * FROM itmc.usuario WHERE cedula_empleado = $1 AND status = $2";
+		$result = pg_query_params($pgconn,$querySQL,array($cedula_id, $status)) or die("Consulta errónea: ".pg_last_error());
+		if (!$result || pg_num_rows($result) === 0) return false;
+
+		$usuario = pg_fetch_array($result);
+		$stored = $usuario['clave'];
+
+		// Verificar con bcrypt (password_hash)
+		$valid = password_verify($clave, $stored);
+
+		// Fallback MD5 para migración: si el hash almacenado es MD5 (32 hex chars)
+		if (!$valid && strlen($stored) === 32 && ctype_xdigit($stored) && md5($clave) === $stored) {
+			// Migrar automáticamente a bcrypt
+			$new_hash = password_hash($clave, PASSWORD_DEFAULT);
+			$migrated = @pg_query_params($pgconn,
+				"UPDATE itmc.usuario SET clave = $1 WHERE id = $2",
+				array($new_hash, $usuario['id'])
+			);
+			if ($migrated === false) {
+				error_log("ITMC: No se pudo migrar MD5->bcrypt para usuario {$usuario['id']}: " . pg_last_error($pgconn));
+			}
+			$valid = true;
 		}
-		 else
-		{
-			return false;
+
+		if ($valid) {
+			// Devolver resultado fresco para el controller
+			return pg_query_params($pgconn,$querySQL,array($cedula_id, $status));
 		}
-		// archivo de bitacora, para intentos de ingreso a el sistema
+
+		return false;
 	}
 
 
 	function autenticar_usuario_perfil ($cedula_id,$clave,$perfil,$status,$pgconn)
 	{
-		$clave = md5($clave);
-		$querySQL = "SELECT * FROM itmc.usuario WHERE cedula_empleado = '$cedula_id' AND clave = '$clave' AND perfil = $perfil AND status = '$status'";
-		$operacion = pg_query($pgconn,$querySQL) or die("Consulta errónea: ".pg_last_error());
-		if($operacion)
-		{
-			// $columna = pg_fetch_array($operacion);
-			// return $columna;
-			return $operacion;
+		// Buscar usuario por cédula + perfil + status (sin incluir clave en el WHERE)
+		$querySQL = "SELECT * FROM itmc.usuario WHERE cedula_empleado = $1 AND perfil = $2 AND status = $3";
+		$result = pg_query_params($pgconn,$querySQL,array($cedula_id, $perfil, $status)) or die("Consulta errónea: ".pg_last_error());
+		if (!$result || pg_num_rows($result) === 0) return false;
+
+		$usuario = pg_fetch_array($result);
+		$stored = $usuario['clave'];
+
+		// Verificar con bcrypt (password_hash)
+		$valid = password_verify($clave, $stored);
+
+		// Fallback MD5 para migración
+		if (!$valid && strlen($stored) === 32 && ctype_xdigit($stored) && md5($clave) === $stored) {
+			// Migrar automáticamente a bcrypt
+			$new_hash = password_hash($clave, PASSWORD_DEFAULT);
+			$migrated = @pg_query_params($pgconn,
+				"UPDATE itmc.usuario SET clave = $1 WHERE id = $2",
+				array($new_hash, $usuario['id'])
+			);
+			if ($migrated === false) {
+				error_log("ITMC: No se pudo migrar MD5->bcrypt para usuario {$usuario['id']}: " . pg_last_error($pgconn));
+			}
+			$valid = true;
 		}
-		 else
-		{
-			return false;
+
+		if ($valid) {
+			// Devolver resultado fresco para el controller
+			return pg_query_params($pgconn,$querySQL,array($cedula_id, $perfil, $status));
 		}
-		// archivo de bitacora, para intentos de ingreso a el sistema
+
+		return false;
 	}
 
 	function validar_prefil ($cedula_id,$perfil,$pgconn)
 	{
-		$querySQL = "SELECT * FROM itmc.usuario WHERE cedula_empleado = '$cedula_id' AND perfil = $perfil";
+		$querySQL = "SELECT * FROM itmc.usuario WHERE cedula_empleado = $1 AND perfil = $2";
 		// echo "$querySQL";
-		$operacion = pg_query($pgconn,$querySQL) or die("Consulta errónea: ".pg_last_error());
+		$operacion = pg_query_params($pgconn,$querySQL,array($cedula_id, $perfil)) or die("Consulta errónea: ".pg_last_error());
 		if($operacion)
 		{
 			$columna = pg_fetch_array($operacion);
@@ -91,15 +125,15 @@ class Usuario {
 
 	function registrar_usuario($cedula_id,$clave,$perfil,$pgconn)
 	{
-		$clave = md5($clave);
-		$querySQL = "INSERT INTO itmc.usuario(cedula_empleado, clave, perfil) VALUES ('$cedula_id', '$clave', $perfil)";
-		$operacion = pg_query($pgconn,$querySQL) or die("Consulta errónea: ".pg_last_error());
+		$clave = password_hash($clave, PASSWORD_DEFAULT);
+		$querySQL = "INSERT INTO itmc.usuario(cedula_empleado, clave, perfil) VALUES ($1, $2, $3)";
+		$operacion = pg_query_params($pgconn,$querySQL,array($cedula_id, $clave, $perfil)) or die("Consulta errónea: ".pg_last_error());
 		return $operacion;
 	}
 	function modificar_usuario($id,$cedula_id,$perfil,$status,$pgconn)
 	{
-		$querySQL = "UPDATE itmc.usuario SET status = '$status' WHERE cedula_empleado = '$cedula_id' AND id = $id AND perfil = $perfil";
-		$operacion = pg_query($pgconn,$querySQL) or die("Consulta errónea: ".pg_last_error());
+		$querySQL = "UPDATE itmc.usuario SET status = $1 WHERE cedula_empleado = $2 AND id = $3 AND perfil = $4";
+		$operacion = pg_query_params($pgconn,$querySQL,array($status, $cedula_id, $id, $perfil)) or die("Consulta errónea: ".pg_last_error());
 		if ($operacion) {
 			return "ok";
 		}else {
@@ -109,9 +143,9 @@ class Usuario {
 
 	function HabiOrInha_usuario ($cedula_id,$status,$pgconn)
 	{
-		$querySQL = "UPDATE itmc.usuario SET status = '$status' WHERE cedula_empleado = '$cedula_id'";
+		$querySQL = "UPDATE itmc.usuario SET status = $1 WHERE cedula_empleado = $2";
 		// echo "$querySQL";
-		$operacion = pg_query($pgconn,$querySQL) or die("Consulta errónea: ".pg_last_error());
+		$operacion = pg_query_params($pgconn,$querySQL,array($status, $cedula_id)) or die("Consulta errónea: ".pg_last_error());
 		if ($operacion) {
 			return "ok";
 		}else {
@@ -121,9 +155,9 @@ class Usuario {
 
 	function HabiOrInha_usuario_perfil ($cedula_id,$status,$perfil,$pgconn)
 	{
-		$querySQL = "UPDATE itmc.usuario SET status = '$status' WHERE cedula_empleado = '$cedula_id' AND perfil = $perfil";
+		$querySQL = "UPDATE itmc.usuario SET status = $1 WHERE cedula_empleado = $2 AND perfil = $3";
 		// echo "$querySQL";
-		$operacion = pg_query($pgconn,$querySQL) or die("Consulta errónea: ".pg_last_error());
+		$operacion = pg_query_params($pgconn,$querySQL,array($status, $cedula_id, $perfil)) or die("Consulta errónea: ".pg_last_error());
 		if ($operacion) {
 			return "ok";
 		}else {
@@ -133,9 +167,9 @@ class Usuario {
 
 	function modificar_clave($cedula_id,$clave,$perfil,$pgconn)
 	{
-		$clave = md5($clave);
-		$querySQL = "UPDATE itmc.usuario SET clave='$clave' WHERE cedula_empleado = '$cedula_id' AND perfil = $perfil";
-		$operacion = pg_query($pgconn,$querySQL) or die("Consulta errónea: ".pg_last_error());
+		$clave = password_hash($clave, PASSWORD_DEFAULT);
+		$querySQL = "UPDATE itmc.usuario SET clave=$1 WHERE cedula_empleado = $2 AND perfil = $3";
+		$operacion = pg_query_params($pgconn,$querySQL,array($clave, $cedula_id, $perfil)) or die("Consulta errónea: ".pg_last_error());
 		// $query= @pg_query($query); //@ suprime mensajes de error en navegador
 		if ($operacion) {
 			return "ok";
@@ -146,8 +180,8 @@ class Usuario {
 
 	function consultar_usuarios ($cedula_id,$pgconn)
 	{
-		$querySQL = "SELECT u.*,p.nombre FROM itmc.usuario AS u INNER JOIN itmc.perfil_usuario AS p ON u.perfil = p.id WHERE u.cedula_empleado = '$cedula_id'";
-		$operacion = pg_query($pgconn,$querySQL) or die ("Consulta errónea: ".pg_last_error());
+		$querySQL = "SELECT u.*,p.nombre FROM itmc.usuario AS u INNER JOIN itmc.perfil_usuario AS p ON u.perfil = p.id WHERE u.cedula_empleado = $1";
+		$operacion = pg_query_params($pgconn,$querySQL,array($cedula_id)) or die ("Consulta errónea: ".pg_last_error());
 
 		if (!empty($operacion)) {
 			return $operacion;
@@ -158,8 +192,8 @@ class Usuario {
 
 	function consultar_usuario_id ($id,$pgconn)
 	{
-		$querySQL = "SELECT u.id,u.cedula_empleado,u.perfil,u.status,p.nombre FROM itmc.usuario AS u INNER JOIN itmc.perfil_usuario AS p ON u.perfil = p.id WHERE u.id = $id";
-		$operacion = pg_query($pgconn,$querySQL) or die ("Consulta errónea: ".pg_last_error());
+		$querySQL = "SELECT u.id,u.cedula_empleado,u.perfil,u.status,p.nombre FROM itmc.usuario AS u INNER JOIN itmc.perfil_usuario AS p ON u.perfil = p.id WHERE u.id = $1";
+		$operacion = pg_query_params($pgconn,$querySQL,array($id)) or die ("Consulta errónea: ".pg_last_error());
 
 		if (!empty($operacion)) {
 			return $operacion;
@@ -172,15 +206,19 @@ class Usuario {
 	{
 		$limit = "";
     if (!empty($rango) && $rango > 0) {
-      $limit = "LIMIT $rango";
+      $limit = "LIMIT $1";
     }elseif ($rango == 'ALL') {
       $limit = "";
     }else {
       $limit = "LIMIT 0";
     }
 
+		$lparams = array();
+		if (!empty($rango) && $rango > 0) {
+			$lparams = array((int)$rango);
+		}
 		$querySQL = "SELECT u.*,p.nombre FROM itmc.usuario AS u LEFT JOIN itmc.perfil_usuario AS p ON u.perfil = p.id $limit";
-		$operacion = pg_query($pgconn,$querySQL) or die ("Consulta errónea: ".pg_last_error());
+		$operacion = pg_query_params($pgconn,$querySQL,$lparams) or die ("Consulta errónea: ".pg_last_error());
 
 		if (!empty($operacion)) {
 			return $operacion;
@@ -191,29 +229,41 @@ class Usuario {
 
 	function filtrar_usuarios ($id,$cedula_id,$perfil,$status,$rango,$pgconn)
 	{
-		$where = "";
-		if   (!empty($id) || !empty($cedula_id)  || !empty($perfil) || !empty($status)) {
-			$where = "WHERE ";
-		}else {
-			$where = "";
+		$conditions = array();
+		$fparams = array();
+		$paramIndex = 1;
+
+		if (!empty($id)) {
+			$conditions[] = "u.id = $" . $paramIndex++;
+			$fparams[] = $id;
+		}
+		if (!empty($cedula_id)) {
+			$conditions[] = "u.cedula_empleado = $" . $paramIndex++;
+			$fparams[] = $cedula_id;
+		}
+		if (!empty($perfil)) {
+			$conditions[] = "u.perfil = $" . $paramIndex++;
+			$fparams[] = $perfil;
+		}
+		if (!empty($status)) {
+			$conditions[] = "u.status = $" . $paramIndex++;
+			$fparams[] = $status;
 		}
 
-		$cod = !empty($id) ? "AND u.id = '$id' " : "";
-		$cedula = !empty($cedula_id) ? "AND u.cedula_empleado = '$cedula_id' " : "";
-		$perfil_u = !empty($perfil) ? "AND u.perfil = $perfil " : "";
-		$status_u = !empty($status) ? "u.status = '$status' " : "";
+		$where = !empty($conditions) ? "WHERE " . implode(" AND ", $conditions) : "";
 
 		$limit = "";
     if (!empty($rango) && $rango > 0) {
-      $limit = "LIMIT $rango";
+      $limit = "LIMIT $" . $paramIndex++;
+      $fparams[] = (int)$rango;
     }elseif ($rango == 'ALL') {
       $limit = "";
     }else {
       $limit = "LIMIT 0";
     }
 
-		$querySQL = "SELECT u.*,p.nombre FROM itmc.usuario AS u LEFT JOIN itmc.perfil_usuario AS p ON u.perfil = p.id $where $status_u $cod $cedula $perfil_u $limit";
-		$operacion = pg_query($pgconn,$querySQL) or die ("Consulta errónea: ".pg_last_error());
+		$querySQL = "SELECT u.*,p.nombre FROM itmc.usuario AS u LEFT JOIN itmc.perfil_usuario AS p ON u.perfil = p.id $where $limit";
+		$operacion = pg_query_params($pgconn,$querySQL,$fparams) or die ("Consulta errónea: ".pg_last_error());
 
 		if (!empty($operacion)) {
 			return $operacion;
@@ -224,9 +274,9 @@ class Usuario {
 
   function estadistica_usuarios_perfil ($perfil,$pgconn)
   {
-    $querySQL = "SELECT count(*) FROM itmc.usuario WHERE status = 't' AND perfil = $perfil GROUP BY id";
+    $querySQL = "SELECT count(*) FROM itmc.usuario WHERE status = 't' AND perfil = $1 GROUP BY id";
 		// echo "$querySQL <hr>";
-    $operacion = pg_query($pgconn,$querySQL) or die ("Consulta errónea: ".pg_last_error());
+    $operacion = pg_query_params($pgconn,$querySQL,array($perfil)) or die ("Consulta errónea: ".pg_last_error());
     // echo "$querySQL";
     if($operacion)
     {

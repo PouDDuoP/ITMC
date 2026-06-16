@@ -1,7 +1,8 @@
 <?php
-if (isset($_SESSION['cedula_empleado']) && !empty($_SESSION['cedula_empleado']) && $_SESSION['status'] === TRUE) {
-  if ($_SESSION['perfil'] > 0) {
-    //Head con todos los elementos de stylo y los script
+require_once __DIR__ . '/../../inc/auth.php';
+require_auth();
+require_perfil();
+//Head con todos los elementos de stylo y los script
 ?>
   <script type="text/javascript" charset="utf-8"></script>
   <script type="text/javascript" src='js/formulario2.js'></script>
@@ -12,17 +13,3 @@ if (isset($_SESSION['cedula_empleado']) && !empty($_SESSION['cedula_empleado']) 
   <script type="text/javascript" src="js/just_input.js"></script>
   <script type="text/javascript" src="js/bootstrap.min.js"></script>
   <!-- <script type="text/javascript" src="js/load_pag.js"></script> -->
-<?php
-  }else {
-    ?>
-      <script type="text/javascript">
-        alert('perfil '+<?php $_SESSION['perfil'] ?>+' no esta registrado');
-          window.location="../index.php";
-      </script>
-    <?php
-  }
-}else {
-  header('location: ../index.php');
-  session_destroy();
-}
-?>

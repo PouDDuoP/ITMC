@@ -1,9 +1,9 @@
 <?php
 session_start();
-$_SESSION['cedula_empleado'];
 
-if (isset($_SESSION['cedula_empleado']) && !empty($_SESSION['cedula_empleado']) && $_SESSION['status'] === TRUE) {
-  if ($_SESSION['perfil'] == 4 || $_SESSION['perfil'] == 3) {
+require_once '../inc/auth.php';
+require_auth();
+require_perfil([4, 3]);
 
     $rango = $_POST['rango'];
 
@@ -38,16 +38,5 @@ if (isset($_SESSION['cedula_empleado']) && !empty($_SESSION['cedula_empleado']) 
       }else{
         echo "Error en la consulta a la base de Datos"."<br>";
       }
-  }else {
-    ?>
-        <script type="text/javascript">
-          alert('este modolo solo esta habilitado para usuario administrador');
-          window.location="../view/view_menu.php";
-        </script>
-    <?php
-  }
-}else {
-  header('location: ../index.php');
-  session_destroy();
-}
+  
 ?>

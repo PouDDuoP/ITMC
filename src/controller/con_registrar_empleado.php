@@ -1,18 +1,17 @@
 <?php
 session_start();
 
-// Incluir configuración si existe
+// Incluir configuraciÃ³n si existe
 if (file_exists('../config.php')) {
     include('../config.php');
 }
 
-$_SESSION['cedula_empleado'];
-
 date_default_timezone_set('America/La_Paz');
 $fecha_actual = date('Y-m-d');
 
-if (isset($_SESSION['cedula_empleado']) && !empty($_SESSION['cedula_empleado']) && $_SESSION['status'] === TRUE) {
-  if ($_SESSION['perfil'] == 4 || $_SESSION['perfil'] == 2) {
+require_once '../inc/auth.php';
+require_auth();
+require_perfil([4, 2]);
     if (!empty($_POST['cedula']) && !empty($_POST['nombre']) && !empty($_POST['apellido']) && !empty($_POST['fecha_ingreso']) && !empty($_POST['cargo']) && !empty($_POST['departamento']) && !empty($_POST['ext_telf']) && !empty($_POST['nro_telf']) && !empty($_POST['sueldo']) && !empty($_POST['email'])) {
 
       $cedula_id = $_POST['cedula'];
@@ -23,7 +22,7 @@ if (isset($_SESSION['cedula_empleado']) && !empty($_SESSION['cedula_empleado']) 
       $departamento = $_POST['departamento'];
       $ext_telf = $_POST['ext_telf'];
       $nro_telf = $_POST['nro_telf'];
-      $clave = $_POST['cedula']; // La clave inicial es la cédula
+      $clave = $_POST['cedula']; // La clave inicial es la cÃ©dula
       $sueldo = $_POST['sueldo'];
       $email = $_POST['email'];
       $perfil = 1; // Perfil por defecto: EMPLEADO
@@ -83,16 +82,5 @@ if (isset($_SESSION['cedula_empleado']) && !empty($_SESSION['cedula_empleado']) 
         </script>
       <?php
     }
-  } else {
-    ?>
-      <script type="text/javascript">
-        alert('este modulo solo esta habilitado para usuario administrador');
-        window.location="../view/view_menu.php";
-      </script>
-    <?php
-  }
-} else {
-  header('Location: index.php');
-  session_destroy();
-}
+  
 ?>
